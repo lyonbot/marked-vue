@@ -1,6 +1,6 @@
 {
   "name": "@lyonbot/marked-vue",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Efficient Markdown rendering in Vue. With incrementally update power!",
   "type": "module",
   "license": "MIT",
@@ -24,7 +24,8 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "tsdown",
