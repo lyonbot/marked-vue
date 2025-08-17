@@ -3,7 +3,8 @@
 
 import { ref } from 'vue';
 import { MarkedVue } from '../../src'
-import fullContent from './sample.md?raw'
+import fullContent from '../../README.md?raw'
+// import fullContent from './sample.md?raw'
 
 import 'github-markdown-css/github-markdown.css'
 
@@ -39,31 +40,36 @@ const markedSetup = (marked: Marked) => {
 </script>
 
 <template>
-  <div class="markdown-body">
-    <MarkedVue :content="content" :setup="markedSetup">
-      <!-- custom code block renderer -->
-      <template #code="{ token }">
-        <pre class="my-code-block">
+  <div class="demo-container">
+    <!-- anchor element, to auto scroll to the bottom -->
+    <div style="flex: 1 0 100px; margin-top: -100px; z-index: -1;"></div>
+
+    <div class="markdown-body">
+      <MarkedVue :content="content" :setup="markedSetup">
+        <!-- custom code block renderer -->
+        <template #code="{ token }">
+          <pre class="my-code-block">
           <div class="my-code-block-lang" v-if="token.lang">
             <span>{{ token.lang }}</span>
           </div>
           <code>{{ token.text }}</code>
         </pre>
-      </template>
+        </template>
 
-      <!-- custom list item renderer -->
-      <template #list_item="{ token, content }">
-        <li class="my-list-item">
-          <component :is="content" />
-        </li>
-      </template>
+        <!-- custom list item renderer -->
+        <template #list_item="{ token, content }">
+          <li class="my-list-item">
+            <component :is="content" />
+          </li>
+        </template>
 
-      <!-- for extension "marked-emoji" -->
-      <!-- see https://github.com/UziTech/marked-emoji -->
-      <template #emoji="{ token }: { token: EmojiToken<string> }">
-        <span class="my-emoji">{{ token.emoji }}</span>
-      </template>
-    </MarkedVue>
+        <!-- for extension "marked-emoji" -->
+        <!-- see https://github.com/UziTech/marked-emoji -->
+        <template #emoji="{ token }: { token: EmojiToken<string> }">
+          <span class="my-emoji">{{ token.emoji }}</span>
+        </template>
+      </MarkedVue>
+    </div>
   </div>
 </template>
 
@@ -106,5 +112,17 @@ const markedSetup = (marked: Marked) => {
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+.demo-container {
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: auto;
+  height: 90vh;
+  border: 1px solid #000;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  max-width: 1200px;
+  margin: auto;
 }
 </style>

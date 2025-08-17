@@ -2,10 +2,15 @@ import { unescape as heUnescape } from "he";
 import type { MarkedToken, Token, Tokens } from "marked";
 import { Comment, h, type VNodeArrayChildren, type VNodeChild } from "vue";
 
+/**
+ * (internal)
+ * 
+ * for `VNodeFactory` functions - if a token has no children, the factory will get this symbol as 2nd argument
+ */
 export const ChildrenNotAvaliable = Symbol('ChildrenNotAvaliable')
 
 type PickByType<Token, Type> = Token extends { type: Type } ? Token : never
-type VNodeFactoryFn<Token> = (
+export type VNodeFactoryFn<Token> = (
   token: Token,
   children: Token extends { tokens?: any } ? VNodeArrayChildren : typeof ChildrenNotAvaliable,
   ctx: VueMarkedRenderer
@@ -115,24 +120,34 @@ export const getDefaultVNodeFactory: () => VNodeFactory = () => ({
   text: (token, children) => ((children as any) === ChildrenNotAvaliable) ? unescape(token.text) : children,
 })
 
+/**
+ * Convert Marked tokens to Vue nodes
+ * 
+ * - Use `render(tokens)` to render tokens to Vue VNodeChild (one or more VNodes, or just string)
+ * - Converting rules are defined in `factory` object.
+ */
 export class VueMarkedRenderer {
   factory: VNodeFactory = getDefaultVNodeFactory()
 
+  /**
+   * render tokens to Vue VNodeChild (one or more VNodes, or just string)
+   */
   render(tokens: Token[] | Token | null | undefined): VNodeChild {
-    if (!tokens) return null
-    if (Array.isArray(tokens)) return tokens.map(token => this.renderToken(token))
-    return this.renderToken(tokens)
-  }
+    if (!tokens || typeof tokens !== 'object') return null
 
-  renderToken(token: Token): VNodeChild {
-    const type = token.type as keyof VNodeFactory
-    const children = ('tokens' in token && Array.isArray(token.tokens)) && this.render(token.tokens)
+    const renderToken = (token: Token): VNodeChild => {
+      const type = token.type as keyof VNodeFactory
+      const children = ('tokens' in token && Array.isArray(token.tokens)) && this.render(token.tokens)
 
-    if (type in this.factory) {
-      const c = Array.isArray(children) ? children as VNodeArrayChildren : children ? [children] : ChildrenNotAvaliable
-      return this.factory[type](token as any, c as any, this)
+      if (type in this.factory) {
+        const c = Array.isArray(children) ? children as VNodeArrayChildren : children ? [children] : ChildrenNotAvaliable
+        return this.factory[type](token as any, c as any, this)
+      }
+
+      return children || null
     }
 
-    return children || null
+    if (Array.isArray(tokens)) return tokens.map(token => renderToken(token))
+    return renderToken(tokens)
   }
 }

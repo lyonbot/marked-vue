@@ -1,6 +1,15 @@
 import { Marked, type MarkedOptions } from 'marked'
-import { defineComponent, h, shallowRef, useSlots, watch, watchEffect, watchSyncEffect, type PropType, type SlotsType, type VNode, type VNodeChild } from "vue";
-import { VueMarkedRenderer, type VNodeFactory } from './renderer';
+import { defineComponent, shallowRef, useSlots, watch, watchEffect, watchSyncEffect, type PropType, type SlotsType, type VNodeChild } from "vue";
+import { VueMarkedRenderer, type VNodeFactory, type VNodeFactoryFn } from './renderer';
+
+type SlotProps<Token> = {
+  /** current token */
+  token: Token
+  /** get rendered children of current token */
+  content: () => VNodeChild
+  /** get original render result (`<li>`, `<ul>`, etc.) */
+  original: () => VNodeChild
+}
 
 export default defineComponent({
   name: "MarkedVue",
@@ -18,14 +27,12 @@ export default defineComponent({
       default: undefined,
     },
   },
-  slots: Object as SlotsType<{
-    [K in keyof VNodeFactory]: {
-      token: Parameters<VNodeFactory[K]>[0]
-      content: () => VNode[]
-    }
-  } & Record<string, { token: any, content: () => VNode[] }>>,
+  slots: Object as SlotsType<
+    { [K in keyof VNodeFactory]: SlotProps<Parameters<VNodeFactory[K]>[0]> }
+    & Record<string, SlotProps<any>>
+  >,
   setup(props) {
-    const renderedVnode = shallowRef<VNodeChild | null>(null);
+    const renderedVnode = shallowRef<VNodeChild>(null);
     const currentMarked = shallowRef<Marked>(null as unknown as Marked)
     const slots = useSlots()
 
@@ -43,18 +50,17 @@ export default defineComponent({
         const slot = slots[id]
         if (!slot) continue
 
+        // Note: originalFactoryFn can be undefined, if user has custom Marked plugin and syntax
+        const originalFactoryFn = renderer.factory[id as keyof VNodeFactory] as (VNodeFactoryFn<any> | undefined)
         renderer.factory[id as keyof VNodeFactory] = (token, ...args) => {
           return slot({
             token,
-            content: (): VNode[] => {
-              // Note: originalFactoryFn can be undefined, if user has custom Marked plugin and syntax
-              const originalFactoryFn = renderer.factory[id as keyof VNodeFactory] as any
-              const children = originalFactoryFn?.(token, ...args)?.children
-
-              if (!children) return []
-              if (typeof children === 'string') return [h('span', children)]
-              if (Array.isArray(children)) return children
-              return [children]
+            content: (): VNodeChild => {
+              const maybeVNode = originalFactoryFn?.(token, ...args) as any
+              return maybeVNode?.children
+            },
+            original: (): VNodeChild => {
+              return originalFactoryFn?.(token, ...args)
             }
           })
         }

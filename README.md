@@ -1,49 +1,64 @@
 # @lyonbot/marked-vue
 
-Lightning-fast Markdown rendering in Vue with streaming superpowers!
+[![npm version](https://img.shields.io/npm/v/@lyonbot/marked-vue.svg)](https://www.npmjs.com/package/@lyonbot/marked-vue)
+[![License](https://img.shields.io/npm/l/@lyonbot/marked-vue.svg)](https://github.com/lyonbot/marked-vue/blob/main/LICENSE)
+[![GitHub](https://img.shields.io/github/stars/lyonbot/marked-vue?style=social)](https://github.com/lyonbot/marked-vue)
 
-- Powered by [marked](https://github.com/markedjs/marked) and [Vue 3](https://vuejs.org/)
-- Incremental render - good for streaming
-- Use custom Vue components
-- Use Marked extensions
+Lightning-fast Markdown rendering in Vue with streaming superpowers! 🚀
 
-## Usage
+A high-performance Vue 3 component that renders Markdown content with incremental updates, perfect for streaming applications and real-time content rendering.
 
-```sh
+## ✨ Features
+
+- ⚡ **Lightning Fast** - Powered by [marked](https://github.com/markedjs/marked) and [Vue 3](https://vuejs.org/)
+- 🔄 **Incremental Rendering** - Perfect for streaming content and real-time updates
+- 🎨 **Customizable** - Use custom Vue components via scoped slots
+- 🔌 **Extensible** - Support for Marked extensions and plugins
+
+## 📦 Installation
+
+```bash
 pnpm install @lyonbot/marked-vue marked
 ```
 
-```html
+## 🚀 Quick Start
+
+```vue
 <template>
   <MarkedVue :content="content" />
 </template>
 
 <script setup lang="ts">
-  import { MarkedVue } from "@lyonbot/marked-vue";
-  import { ref } from "vue";
+import { MarkedVue } from "@lyonbot/marked-vue";
+import { ref } from "vue";
 
-  const fullContent = `
+const fullContent = `
 # Hello World
 
-Efficient Markdown rendering in Vue. With incrementally update power!
+Welcome to **marked-vue** - the fastest Markdown renderer for Vue!
+
+## Features
+- Incremental rendering
+- Custom components
+- Streaming support
 `;
 
-  // emulate streaming
-  const content = ref("");
-  const timer = setInterval(() => {
-    content.value = fullContent.slice(0, content.value.length + 5);
-    if (content.value.length >= fullContent.length) clearInterval(timer);
-  }, 50);
+// Simulate streaming content
+const content = ref("");
+const timer = setInterval(() => {
+  content.value = fullContent.slice(0, content.value.length + 5);
+  if (content.value.length >= fullContent.length) clearInterval(timer);
+}, 50);
 </script>
 ```
 
-### Custom Compoents
+## 🎨 Custom Components
 
-Use scoped slots to customize how elements shall render:
+Use scoped slots to customize how elements are rendered:
 
-```html
+```vue
 <MarkedVue :content="content">
-  <!-- custom code block renderer -->
+  <!-- Custom code block renderer -->
   <template #code="{ token }">
     <pre class="my-code-block">
       <div class="my-code-block-lang" v-if="token.lang">
@@ -53,38 +68,42 @@ Use scoped slots to customize how elements shall render:
     </pre>
   </template>
 
-  <!-- custom list item renderer -->
+  <!-- Custom list item renderer -->
   <template #list_item="{ token, content }">
     <li class="my-list-item">
-      <!-- render list item content -->
       <component :is="content" />
     </li>
   </template>
 </MarkedVue>
 ```
 
-### Custom Marked Options
+## ⚙️ Custom Marked Options
 
-You can pass `options` prop to customize [Marked options](https://marked.js.org/using_advanced#options)
+Pass `options` prop to customize [Marked options](https://marked.js.org/using_advanced#options):
 
-```jsx
-<MarkedVue :content="content" :options="markedOptions" />
+```vue
+<template>
+  <MarkedVue :content="content" :options="markedOptions" />
+</template>
 
+<script setup lang="ts">
 const markedOptions = {
-  gfm: true,
-  breaks: true,
-}
+  gfm: true, // GitHub Flavored Markdown
+  breaks: true, // Convert \n to <br>
+  headerIds: true, // Add ids to headers
+};
+</script>
 ```
 
-### Use Marked Extensions
+## 🔌 Marked Extensions
 
-You can pass `setup` prop to [use Marked extensions](https://marked.js.org/using_pro#use)
+Use the `setup` prop to integrate [Marked extensions](https://marked.js.org/using_pro#use):
 
-⚠️ If the extension introduces new Token type, you must configure how to render it in scoped slots!
+⚠️ **Important**: If an extension introduces new token types, you must configure how to render them using scoped slots!
 
-Example: use [marked-emoji](https://github.com/UziTech/marked-emoji) extension
+### Example: [marked-emoji](https://github.com/UziTech/marked-emoji) extension
 
-```ts
+```typescript
 import { type Marked } from "marked";
 import { markedEmoji, type EmojiToken } from "marked-emoji";
 import { MarkedVue } from "@lyonbot/marked-vue";
@@ -103,13 +122,45 @@ const markedSetup = (marked: Marked) => {
 };
 ```
 
-```html
+```vue
 <MarkedVue :content="content" :setup="markedSetup">
-  <!-- render emoji token -->
+  <!-- Render emoji tokens -->
   <template #emoji="{ token }: { token: EmojiToken<string> }">
     <span class="my-emoji">{{ token.emoji }}</span>
   </template>
 </MarkedVue>
 ```
 
-Note: if not using TypeScript, you can delete the `: { token: EmojiToken<string> }` part
+> **Note**: If you're not using TypeScript, you can remove the type annotation `: { token: EmojiToken<string> }`.
+
+## 📚 API Reference
+
+### Props
+
+| Prop      | Type                       | Default     | Description                             |
+| --------- | -------------------------- | ----------- | --------------------------------------- |
+| `content` | `string`                   | `''`        | Markdown content to render              |
+| `options` | `MarkedOptions`            | `{}`        | Marked parser options                   |
+| `setup`   | `(marked: Marked) => void` | `undefined` | Function to configure Marked extensions |
+
+### Scoped Slots
+
+The component provides scoped slots for all Markdown elements. Common ones include:
+
+- `#heading` - Headers (h1-h6)
+- `#paragraph` - Paragraphs
+- `#code` - Code blocks
+- `#list` - Lists (ordered/unordered)
+- `#list_item` - List items
+- `#strong` - Bold text
+- `#em` - Italic text
+- `#link` - Links
+- `#image` - Images
+- and any other token type from [Marked built-ins](https://github.com/markedjs/marked/blob/master/src/Tokens.ts) and extensions
+
+Each slot receives a `token` object and a `content` function.
+
+- `token` is the Marked token object
+
+- `content` can be used to render children of current token
+  - `<component :is="content" />`
