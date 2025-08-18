@@ -56,7 +56,7 @@ const timer = setInterval(() => {
 
 Use scoped slots to customize how elements are rendered:
 
-```vue
+```xml
 <MarkedVue :content="content">
   <!-- Custom code block renderer -->
   <template #code="{ token }">
@@ -90,7 +90,6 @@ Pass `options` prop to customize [Marked options](https://marked.js.org/using_ad
 const markedOptions = {
   gfm: true, // GitHub Flavored Markdown
   breaks: true, // Convert \n to <br>
-  headerIds: true, // Add ids to headers
 };
 </script>
 ```
@@ -122,7 +121,7 @@ const markedSetup = (marked: Marked) => {
 };
 ```
 
-```vue
+```xml
 <MarkedVue :content="content" :setup="markedSetup">
   <!-- Render emoji tokens -->
   <template #emoji="{ token }: { token: EmojiToken<string> }">
@@ -156,11 +155,14 @@ The component provides scoped slots for all Markdown elements. Common ones inclu
 - `#em` - Italic text
 - `#link` - Links
 - `#image` - Images
-- and any other token type from [Marked built-ins](https://github.com/markedjs/marked/blob/master/src/Tokens.ts) and extensions
+- and any other token type from [Marked built-in Tokens](https://github.com/markedjs/marked/blob/master/src/Tokens.ts) and your extensions
 
-Each slot receives a `token` object and a `content` function.
+Each slot receives these props:
 
-- `token` is the Marked token object
-
-- `content` can be used to render children of current token
-  - `<component :is="content" />`
+- `token` - Object of current token
+  - `token.raw` - Raw text of current token
+  - `token.*` - Any other property of current token
+- `content` - Function to render children of current token
+  - to render them, use `<component :is="content" />`
+- `original` - Function to render original element of current token
+  - to render it, use `<component :is="original" />`
